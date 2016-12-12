@@ -48,6 +48,7 @@ hello bob
 ```
 
 ### Invalid signatures should get back `401` status code.
+Let's simply change the last character of the token.
 ```
 curl -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJnYXRld2F5Iiwic3ViIjoiYm9iIn0.-UDM8eThnUL_0rDZcGbmjMTjHUOIJx9R1q" localhost:8080
 ```
@@ -74,10 +75,6 @@ Produces:
 ```
 {"timestamp":1481535529491,"status":401,"error":"Unauthorized","message":"Authentication Failed: Expected aud claim to be: gateway, but was: other.","path":"/"}
 ```
-
-
-First request a token with a different audience and send a request to the gateway using the new token.
-
 
 
 ## Json Web Token service (`jwt-token-service`)
