@@ -98,7 +98,7 @@ Produces:
 ```
 
 ### Role-based Authorization
-So far we have simply requested `gateway` endpoints which does not require further checks besides the `aud`. But the `gateway` exposes another endpoint, `/bye` which requires the user to have the `ADMIN` role. This role is contained in an agreed JWT claim. The name of this claim is configurable (`application.yml#jwt.claimName`) by default the name is `roles` (comma-separated values).
+So far we have reached endpoints which does not require further checks besides the `aud`. But the `gateway` exposes another endpoint, `/bye` which requires the user to have the `ADMIN` role. This role is contained in an agreed JWT claim. The name of this claim is configurable (`application.yml#jwt.claimName`) by default the name is `roles` (comma-separated values).
 
 Let's try first sending a request which has no roles.
 ```
@@ -141,7 +141,7 @@ Produces:
 eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJnYXRld2F5Iiwic3ViIjoiYm9iIiwicm9sZXMiOiJBRE1JTixiYWNrZW5kLnJlYWQifQ.986Yzi0m5zTyncyLmnL_fxec8R5bw2msOUKXtR9x_9Q
 ```
 
-If we send a `GET` request:
+Let's launch the resource-service first. Now we send a `GET` request:
 ```
 curl  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJnYXRld2F5Iiwic3ViIjoiYm9iIiwicm9sZXMiOiJBRE1JTixiYWNrZW5kLnJlYWQifQ.986Yzi0m5zTyncyLmnL_fxec8R5bw2msOUKXtR9x_9Q" localhost:8080/backend
 ```
@@ -171,7 +171,7 @@ See how the `gateway` does not send the client's token to the `backend-service`.
 curl -X POST -H "Content-Type: application/json" -d '{"aud":"backend", "sub": "gateway" }' localhost:8081/symmetricalToken?symmetricalKey=trdFmDVIKGhC8wR7be36Jyve3lqQRLTI
 ```
 
-Let's send a `/backend` request to the `gateway`. See that we can use any of the valid JWT we used in the previous sections.
+Lets launch first the backend-service and then send a `/backend` request to the `gateway`. See that we can use any of the valid JWT we used in the previous sections.
 ```
 curl -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJnYXRld2F5Iiwic3ViIjoiYm9iIiwicm9sZXMiOiJBRE1JTixiYWNrZW5kLnJlYWQifQ.986Yzi0m5zTyncyLmnL_fxec8R5bw2msOUKXtR9x_9Q" localhost:8080/backend
 ```
