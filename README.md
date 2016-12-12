@@ -101,6 +101,34 @@ Send `/bye` request to the `gateway` app:
 curl -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJnYXRld2F5Iiwic3ViIjoiYm9iIiwicm9sZXMiOiJBRE1JTiJ9._YXXN3uYlnwHQoQ05k_5uG-TNhuGJZ5QefWxpPNQM4k" localhost:8080/bye
 ```
 
+## Securing Service-to-Service calls
+
+Lets create a token for `Bob` with the roles `ADMIN,backend.read`:
+```
+curl -X POST -H "Content-Type: application/json" -d '{"aud":"gateway","sub":"bob", "roles": "ADMIN,backend.read" }' localhost:8081/symmetricalToken?symmetricalKey=trdFmDVIKGhC8wR7be36Jyve3lqQRLTI
+```
+Produces:
+```
+eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJnYXRld2F5Iiwic3ViIjoiYm9iIiwicm9sZXMiOiJBRE1JTixiYWNrZW5kLnJlYWQifQ.986Yzi0m5zTyncyLmnL_fxec8R5bw2msOUKXtR9x_9Q
+```
+
+The endpoint `/backend` in `gateway` app forwards the request to the downstream application `backend` running under `http://localhost:8082`. This app exposes just one endpoint, `/` but with 2 methods: `GET` and `POST`. The former requires the role `backend.read` and the latter `backend.write`.
+
+If we send a `GET` request:
+```
+curl  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJnYXRld2F5Iiwic3ViIjoiYm9iIiwicm9sZXMiOiJBRE1JTixiYWNrZW5kLnJlYWQifQ.986Yzi0m5zTyncyLmnL_fxec8R5bw2msOUKXtR9x_9Q" localhost:8080/backend
+```
+It should succeed (it returns nothing).
+
+But if we send a `POST` request, it should fail:
+```
+curl -X POST -d '' -H  "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJnYXRld2F5Iiwic3ViIjoiYm9iIiwicm9sZXMiOiJBRE1JTixiYWNrZW5kLnJlYWQifQ.986Yzi0m5zTyncyLmnL_fxec8R5bw2msOUKXtR9x_9Q" localhost:8080/backend
+```
+Produces:
+```
+{"timestamp":1481543136869,"status":403,"error":"Forbidden","exception":"org.springframework.security.access.AccessDeniedException","message":"No message available","path":"/backend"}
+```
+
 ## Json Web Token service (`jwt-token-service`)
 
 Rest service that issues JWT tokens to facilitate testing.

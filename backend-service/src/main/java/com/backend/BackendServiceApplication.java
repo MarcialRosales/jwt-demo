@@ -1,8 +1,6 @@
-package com.gateway;
+package com.backend;
 
-import java.io.IOException;
 import java.util.Arrays;
-import java.util.Collections;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -14,11 +12,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpRequest;
-import org.springframework.http.client.ClientHttpRequestExecution;
-import org.springframework.http.client.ClientHttpRequestInterceptor;
-import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.ProviderManager;
@@ -29,64 +22,22 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.client.DefaultResponseErrorHandler;
-import org.springframework.web.client.ResponseErrorHandler;
-import org.springframework.web.client.RestTemplate;
 
-import com.gateway.security.AuthenticatedUser;
 import com.gateway.security.JwtAuthenticationProvider;
 import com.gateway.security.JwtAuthenticationTokenFilter;
 import com.gateway.security.JwtTokenValidator;
 
 @SpringBootApplication
-public class GatewayAppApplication {
+public class BackendServiceApplication {
 
-	@Bean
-	public RestTemplate restTemplate() {
-		RestTemplate restTemplate = new RestTemplate();
-		restTemplate.setErrorHandler(new CustomResponseErrorHandler());
-		restTemplate.setInterceptors(Collections.singletonList(new AuthorizationHeaderPropagator()));
-		return restTemplate;
-	}
-	
 	public static void main(String[] args) {
-		SpringApplication.run(GatewayAppApplication.class, args);
+		SpringApplication.run(BackendServiceApplication.class, args);
 	}
 }
-class CustomResponseErrorHandler implements ResponseErrorHandler {
 
-    private ResponseErrorHandler myErrorHandler = new DefaultResponseErrorHandler();
-
-    public boolean hasError(ClientHttpResponse response) throws IOException {
-        return myErrorHandler.hasError(response);
-    }
-
-    public void handleError(ClientHttpResponse response) throws IOException {
-        switch(response.getRawStatusCode()) {
-        case 403:
-        	throw new org.springframework.security.access.AccessDeniedException(response.getStatusText());
-        }
-        myErrorHandler.handleError(response);
-    }
-
-}
-class AuthorizationHeaderPropagator implements ClientHttpRequestInterceptor {
-
-    @Override
-    public ClientHttpResponse intercept(
-            HttpRequest request, byte[] body, ClientHttpRequestExecution execution)
-            throws IOException {
-
-        HttpHeaders headers = request.getHeaders();
-        AuthenticatedUser user = (AuthenticatedUser)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        headers.add("Authorization", "Bearer " + user.getToken());
-        return execution.execute(request, body);
-    }
-}
 /**
  * Security configuration: - Use method annotation @PreAuthorize to declare the
  * required role to execute the method

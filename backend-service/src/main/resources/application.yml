@@ -1,0 +1,17 @@
+server.port: 8082
+
+spring:
+  application:
+    name: backend
+     
+  resources:
+    chain:
+      enabled: true
+      
+security:
+  basic:
+    enabled: false      
+    
+jwt:
+  secret: trdFmDVIKGhC8wR7be36Jyve3lqQRLTI
+    
