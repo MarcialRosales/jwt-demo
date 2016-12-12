@@ -1,0 +1,17 @@
+
+spring:
+  application:
+    name: gateway
+     
+  resources:
+    chain:
+      enabled: true
+      
+security:
+  basic:
+    enabled: false      
+    
+jwt:
+  requireAudience: ${spring.application.name} # Enforce token contains 'aud' claim equal to this application's name 
+  secret: trdFmDVIKGhC8wR7be36Jyve3lqQRLTI
+    
