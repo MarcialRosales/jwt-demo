@@ -34,19 +34,19 @@ public class GreetingController {
 		return "hello " + principal.getName();
 	}
 	
-	@GetMapping("/bye")
+	@GetMapping("/admin")
 	@PreAuthorize("hasAuthority('ADMIN')")
-	public void admin() {
-		
+	public String admin(Principal principal) {
+		return "executed admin task for " + principal;
 	}
 	
 	@GetMapping("/resource")
 	public void read(@AuthenticationPrincipal AuthenticatedUser user) {
-		resourceRestTemplate.exchange(backendUrl, HttpMethod.GET, null, Void.class, Collections.emptyMap());
+		resourceRestTemplate.exchange(resourceUrl, HttpMethod.GET, null, Void.class, Collections.emptyMap());
 	}
 	@PostMapping("/resource")
 	public void write(@AuthenticationPrincipal AuthenticatedUser user) {
-		resourceRestTemplate.exchange(backendUrl, HttpMethod.POST, null, Void.class, Collections.emptyMap());
+		resourceRestTemplate.exchange(resourceUrl, HttpMethod.POST, null, Void.class, Collections.emptyMap());
 	}
 	
 	@GetMapping("/backend")

@@ -9,25 +9,19 @@ import java.util.Date;
 
 /**
  * Holds the info for a authenticated user (Principal)
- * @author pascal alma
+ * 
  */
+@SuppressWarnings("serial")
 public class AuthenticatedUser implements UserDetails {
 
-    private final Long id;
     private final String username;
     private final String token;
     private final Collection<? extends GrantedAuthority> authorities;
 
-    public AuthenticatedUser(Long id, String username, String token, Collection<? extends GrantedAuthority> authorities) {
-        this.id = id;
+    public AuthenticatedUser(String username, String token, Collection<? extends GrantedAuthority> authorities) {
         this.username = username;
         this.token = token;
         this.authorities = authorities;
-    }
-
-    @JsonIgnore
-    public Long getId() {
-        return id;
     }
 
     @Override

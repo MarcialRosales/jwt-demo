@@ -7,7 +7,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 /**
  * JWT Token holder required by Spring Security framework (AbstractUserDetailsAuthenticationProvider)
  *
- * @author pascal alma
  */
 @SuppressWarnings("serial")
 public class JwtAuthenticationToken extends UsernamePasswordAuthenticationToken {

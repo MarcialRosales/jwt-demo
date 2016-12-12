@@ -134,7 +134,7 @@ The `resource-service` exposes one endpoint `/resource` and 2 operations, `GET` 
 
 Lets create a token for our user `Bob` with the roles `ADMIN,resource.read`:
 ```
-curl -X POST -H "Content-Type: application/json" -d '{"aud":"gateway","sub":"bob", "roles": "ADMIN,backend.read" }' localhost:8081/symmetricalToken?symmetricalKey=trdFmDVIKGhC8wR7be36Jyve3lqQRLTI
+curl -X POST -H "Content-Type: application/json" -d '{"aud":"gateway","sub":"bob", "roles": "ADMIN,resource.read" }' localhost:8081/symmetricalToken?symmetricalKey=trdFmDVIKGhC8wR7be36Jyve3lqQRLTI
 ```
 Produces:
 ```
@@ -143,13 +143,13 @@ eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJnYXRld2F5Iiwic3ViIjoiYm9iIiwicm9sZXMiOiJBRE1JTix
 
 Let's launch the resource-service first. Now we send a `GET` request:
 ```
-curl  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJnYXRld2F5Iiwic3ViIjoiYm9iIiwicm9sZXMiOiJBRE1JTixiYWNrZW5kLnJlYWQifQ.986Yzi0m5zTyncyLmnL_fxec8R5bw2msOUKXtR9x_9Q" localhost:8080/backend
+curl  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJnYXRld2F5Iiwic3ViIjoiYm9iIiwicm9sZXMiOiJBRE1JTixiYWNrZW5kLnJlYWQifQ.986Yzi0m5zTyncyLmnL_fxec8R5bw2msOUKXtR9x_9Q" localhost:8080/resource
 ```
 It should succeed (it returns nothing).
 
 But if we send a `POST` request, it should fail because our user hasn't got yet the `resource.write` role.
 ```
-curl -X POST -d '' -H  "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJnYXRld2F5Iiwic3ViIjoiYm9iIiwicm9sZXMiOiJBRE1JTixiYWNrZW5kLnJlYWQifQ.986Yzi0m5zTyncyLmnL_fxec8R5bw2msOUKXtR9x_9Q" localhost:8080/backend
+curl -X POST -d '' -H  "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJnYXRld2F5Iiwic3ViIjoiYm9iIiwicm9sZXMiOiJBRE1JTixiYWNrZW5kLnJlYWQifQ.986Yzi0m5zTyncyLmnL_fxec8R5bw2msOUKXtR9x_9Q" localhost:8080/resource
 ```
 Produces:
 ```
@@ -171,7 +171,7 @@ See how the `gateway` does not send the client's token to the `backend-service`.
 curl -X POST -H "Content-Type: application/json" -d '{"aud":"backend", "sub": "gateway" }' localhost:8081/symmetricalToken?symmetricalKey=trdFmDVIKGhC8wR7be36Jyve3lqQRLTI
 ```
 
-Lets launch first the backend-service and then send a `/backend` request to the `gateway`. See that we can use any of the valid JWT we used in the previous sections.
+Lets launch first the `backend-service` and then send a `/backend` request to the `gateway`. See that we can use any of the valid JWT we used in the previous sections.
 ```
 curl -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJnYXRld2F5Iiwic3ViIjoiYm9iIiwicm9sZXMiOiJBRE1JTixiYWNrZW5kLnJlYWQifQ.986Yzi0m5zTyncyLmnL_fxec8R5bw2msOUKXtR9x_9Q" localhost:8080/backend
 ```

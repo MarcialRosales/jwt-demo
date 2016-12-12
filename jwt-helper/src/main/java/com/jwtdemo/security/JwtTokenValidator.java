@@ -36,7 +36,7 @@ public class JwtTokenValidator {
 		this.roleClaimName = roleClaimName;
 	}
 
-	public UserDetails parseToken(String token) {
+	public AuthenticatedUser parseToken(String token) {
     	try {
         	log.debug("using key: [%s] to validate token \n%s", secret, token);
 
@@ -57,7 +57,7 @@ public class JwtTokenValidator {
             // Security measure: Enforce date validation
             // TODO
             
-           return  new User(body.getSubject(), "", buildAuthorities(body));
+           return  new AuthenticatedUser(body.getSubject(), "", buildAuthorities(body));
             
         } catch (JwtException | UnsupportedEncodingException e) {
             throw new BadCredentialsException(e.getMessage());
