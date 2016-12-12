@@ -22,9 +22,10 @@ Produces:
 {"timestamp":1481534933500,"status":401,"error":"Unauthorized","message":"Authentication Failed: JWT token not found","path":"/"}
 ```
 
-### Authenticated request with both, `aud` and `gateway` claims, and signed with the same key as configured in the `application.yml` should get back a `200` status code and a greeting message.
+### Authenticated request with both, `aud` and `sub` claims, and signed with the same key as configured in the `application.yml` should get back a `200` status code and a greeting message.
 
-First of all, we are going to copy into the clipboard the symmetrical key configured in our gateway app.
+First of all, we are going to copy into the clipboard the symmetrical key configured in our gateway app (`application.yml#jwt.secret`).
+
 ```
 trdFmDVIKGhC8wR7be36Jyve3lqQRLTI
 ```
