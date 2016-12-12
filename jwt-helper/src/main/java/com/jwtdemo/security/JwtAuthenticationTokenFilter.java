@@ -1,4 +1,4 @@
-package com.gateway.security;
+package com.jwtdemo.security;
 
 import java.io.IOException;
 

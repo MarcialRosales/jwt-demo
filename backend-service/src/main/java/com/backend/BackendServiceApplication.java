@@ -26,9 +26,9 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import com.gateway.security.JwtAuthenticationProvider;
-import com.gateway.security.JwtAuthenticationTokenFilter;
-import com.gateway.security.JwtTokenValidator;
+import com.jwtdemo.security.JwtAuthenticationTokenFilter;
+import com.jwtdemo.security.JwtTokenValidator;
+import com.jwtdemo.security.JwtAuthenticationProvider;
 
 @SpringBootApplication
 public class BackendServiceApplication {

@@ -10,7 +10,14 @@ spring:
 security:
   basic:
     enabled: false      
-    
+
+backend:
+  url: http://localhost:8082
+  token: eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJiYWNrZW5kIiwic3ViIjoiZ2F0ZXdheSJ9.g4RB6Tb53sWtoErMtNGB4S_J0_x7MobOl-2WRha5EaU
+  
+resource:
+  url: http://localhost:8083
+      
 jwt:
   requireAudience: ${spring.application.name} # Enforce token contains 'aud' claim equal to this application's name 
   secret: trdFmDVIKGhC8wR7be36Jyve3lqQRLTI

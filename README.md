@@ -2,6 +2,20 @@
 
 Demonstrate how to secure applications using Json Web Token.
 
+There are 2 authorization scenarios. One scenario where the client (`AnyRestClient`) sends a request whose purpose is to access/manipulate a client's resource, e.g. its account, its messages, etc. The client's resources are served by a downstream service called `resource-service`.
+```
+    <AnyRestClient> ----http(with client_JWT)---> Gateway --http(with client_JWT)------> resource-service
+```
+In this scenario, the `resource-service` authorizes based on the client's JWT because it has the roles used by the `resource-service` to decide whether it accepts the request. e.g. `resource.read` or `resource.write`.
+
+A second scenario is where the client sends a request but the `gateway` application in this case needs to call a downstream infrastructure service, e.g. a notification service, a cache service, etc.
+```
+    <AnyRestClient> ---http(with client_JWT)---> Gateway ---http(with gateway_JWT)----> backend-service
+```
+In this scenario, the `backend-service` does not serve any client's resource hence it does not really need a client's JWT. Instead, it expects a JWT token which has `aud` = `backend-service`.
+
+
+
 ## Gateway application (`gateway-app`)
 
 Sample application secured via a JWT which must have 2 claims: `sub` the Subject and `aud` the Audience which must match the name of our gateway application (i.e. `gateway`).
@@ -102,10 +116,16 @@ Send `/bye` request to the `gateway` app:
 curl -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJnYXRld2F5Iiwic3ViIjoiYm9iIiwicm9sZXMiOiJBRE1JTiJ9._YXXN3uYlnwHQoQ05k_5uG-TNhuGJZ5QefWxpPNQM4k" localhost:8080/bye
 ```
 
-### Securing Service-to-Service calls where the downstream service is a client resource
-First of all, launch `backend-service` application that runs by default on port 8082.
+### Securing downstream client resource (e.g. a service that deals with user's information)
+`resource-service` is our downstream service that the `gateway` will call. It runs by default on port 8083.
 
-Lets create a token for `Bob` with the roles `ADMIN,backend.read`:
+The flow is as follows:
+```
+ <RestClient> ---/resource(with client_JWT)---> Gateway ---/resource(with client_JWT)----> resource-service
+```
+The `resource-service` exposes one endpoint `/resource` and 2 operations, `GET` and `POST`. The former requires the role `resource.read` and the latter `resource.write`. If our RestClient has the role `resource.read` it will be allowed to do a GET on `/resource`. Likewise, the role `resource.write` will allow to do a PUT on `/resource`.
+
+Lets create a token for our user `Bob` with the roles `ADMIN,resource.read`:
 ```
 curl -X POST -H "Content-Type: application/json" -d '{"aud":"gateway","sub":"bob", "roles": "ADMIN,backend.read" }' localhost:8081/symmetricalToken?symmetricalKey=trdFmDVIKGhC8wR7be36Jyve3lqQRLTI
 ```
@@ -113,8 +133,6 @@ Produces:
 ```
 eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJnYXRld2F5Iiwic3ViIjoiYm9iIiwicm9sZXMiOiJBRE1JTixiYWNrZW5kLnJlYWQifQ.986Yzi0m5zTyncyLmnL_fxec8R5bw2msOUKXtR9x_9Q
 ```
-
-The endpoint `/backend` in `gateway` app forwards the request to the downstream application `backend` running under `http://localhost:8082`. This app exposes just one endpoint, `/` but with 2 methods: `GET` and `POST`. The former requires the role `backend.read` and the latter `backend.write`.
 
 If we send a `GET` request:
 ```
@@ -130,6 +148,27 @@ Produces:
 ```
 {"timestamp":1481543136869,"status":403,"error":"Forbidden","exception":"org.springframework.security.access.AccessDeniedException","message":"No message available","path":"/backend"}
 ```
+
+### Securing Service-to-Service calls where the downstream service is a not a client resource (e.g. an infrastructure service)
+`backend-service` is our downstream service that the `gateway` will call. It runs by default on port 8082. This service requires the caller to pass a JWT with the `aud` claim equal to `backend`. In other words, a token that authorizes the `subject` to access the `audience`.
+
+The flow is as follows:
+```
+ <RestClient> ---/backend(with client_JWT)---> Gateway ---/(with gateway_JWT)----> backend-service
+```
+See how the `Gateway` does not send the client's token to the `backend-service`. Instead it uses the token assigned to itself to talk to the `backend-service`.
+
+`gateway` is already configured with a valid token. Check out `application.yml#backend.secret` property. It was obtained using this request:
+```
+curl -X POST -H "Content-Type: application/json" -d '{"aud":"backend", "sub": "gateway" }' localhost:8081/symmetricalToken?symmetricalKey=trdFmDVIKGhC8wR7be36Jyve3lqQRLTI
+```
+
+Let's send a `/backend` request to the `gateway`. See that we can use any of the valid JWT we used in the previous sections.
+```
+curl -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJnYXRld2F5Iiwic3ViIjoiYm9iIiwicm9sZXMiOiJBRE1JTixiYWNrZW5kLnJlYWQifQ.986Yzi0m5zTyncyLmnL_fxec8R5bw2msOUKXtR9x_9Q" localhost:8080/backend
+```
+
+
 
 ## Json Web Token service (`jwt-token-service`)
 

@@ -1,9 +1,11 @@
-package com.gateway.security;
+package com.jwtdemo.security;
 
 import java.io.UnsupportedEncodingException;
 import java.util.Collection;
 import java.util.Collections;
 
+import org.apache.log4j.spi.LoggerFactory;
+import org.slf4j.Logger;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
@@ -25,6 +27,8 @@ public class JwtTokenValidator {
     private String requireAudience;
     private String roleClaimName;
     
+    private static Logger log = org.slf4j.LoggerFactory.getLogger(JwtTokenValidator.class);
+    
     public JwtTokenValidator(String secret, String requireAudience, String roleClaimName) {
 		super();
 		this.secret = secret;
@@ -32,9 +36,9 @@ public class JwtTokenValidator {
 		this.roleClaimName = roleClaimName;
 	}
 
-	public AuthenticatedUser parseToken(String token) {
+	public UserDetails parseToken(String token) {
     	try {
-        	System.out.printf("using key: [%s] to validate token \n%s", secret, token);
+        	log.debug("using key: [%s] to validate token \n%s", secret, token);
 
             Jws<Claims> jwt = parser().parseClaimsJws(token);
             Claims body = jwt.getBody();
@@ -53,7 +57,7 @@ public class JwtTokenValidator {
             // Security measure: Enforce date validation
             // TODO
             
-           return  new AuthenticatedUser(body.getSubject(), token, buildAuthorities(body));
+           return  new User(body.getSubject(), "", buildAuthorities(body));
             
         } catch (JwtException | UnsupportedEncodingException e) {
             throw new BadCredentialsException(e.getMessage());

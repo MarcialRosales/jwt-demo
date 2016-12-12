@@ -9,6 +9,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.NotNull;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -37,19 +38,27 @@ import org.springframework.web.client.DefaultResponseErrorHandler;
 import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
 
-import com.gateway.security.AuthenticatedUser;
-import com.gateway.security.JwtAuthenticationProvider;
-import com.gateway.security.JwtAuthenticationTokenFilter;
-import com.gateway.security.JwtTokenValidator;
+import com.jwtdemo.security.AuthenticatedUser;
+import com.jwtdemo.security.JwtAuthenticationProvider;
+import com.jwtdemo.security.JwtAuthenticationTokenFilter;
+import com.jwtdemo.security.JwtTokenValidator;
 
 @SpringBootApplication
 public class GatewayAppApplication {
 
-	@Bean
-	public RestTemplate restTemplate() {
+	@Bean(name = "resource")
+	public RestTemplate resourceTemplate() {
 		RestTemplate restTemplate = new RestTemplate();
 		restTemplate.setErrorHandler(new CustomResponseErrorHandler());
 		restTemplate.setInterceptors(Collections.singletonList(new AuthorizationHeaderPropagator()));
+		return restTemplate;
+	}
+	
+	@Bean(name = "backend")
+	public RestTemplate backendTemplate(@Value("${backend.token}") String token) {
+		RestTemplate restTemplate = new RestTemplate();
+		restTemplate.setErrorHandler(new CustomResponseErrorHandler());
+		restTemplate.setInterceptors(Collections.singletonList(new AuthorizationHeaderInjector(token)));
 		return restTemplate;
 	}
 	
@@ -84,6 +93,25 @@ class AuthorizationHeaderPropagator implements ClientHttpRequestInterceptor {
         HttpHeaders headers = request.getHeaders();
         AuthenticatedUser user = (AuthenticatedUser)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         headers.add("Authorization", "Bearer " + user.getToken());
+        return execution.execute(request, body);
+    }
+}
+class AuthorizationHeaderInjector implements ClientHttpRequestInterceptor {
+
+	private String authorizationHeader;
+	
+    public AuthorizationHeaderInjector(String token) {
+		super();
+		this.authorizationHeader = "Bearer " + token;
+	}
+
+	@Override
+    public ClientHttpResponse intercept(
+            HttpRequest request, byte[] body, ClientHttpRequestExecution execution)
+            throws IOException {
+
+        HttpHeaders headers = request.getHeaders();
+        headers.add("Authorization", authorizationHeader);
         return execution.execute(request, body);
     }
 }

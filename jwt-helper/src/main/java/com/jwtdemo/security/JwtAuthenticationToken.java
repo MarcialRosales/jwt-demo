@@ -1,4 +1,4 @@
-package com.gateway.security;
+package com.jwtdemo.security;
 
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
