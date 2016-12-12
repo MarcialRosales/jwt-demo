@@ -124,7 +124,7 @@ class JWTConfiguration {
 
 	private String requireAudience;
 
-	private String roleClaimName;
+	private String roleClaimName = "roles";
 
     private String tokenHeader = "Authorization";
 

@@ -76,6 +76,30 @@ Produces:
 {"timestamp":1481535529491,"status":401,"error":"Unauthorized","message":"Authentication Failed: Expected aud claim to be: gateway, but was: other.","path":"/"}
 ```
 
+### Role-based Authorization
+
+Let's try first sending a request which has no roles.
+```
+curl -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJnYXRld2F5Iiwic3ViIjoiYm9iIn0.-UDM8eThnUL_0rDZcGbmjMSQsE5aqpRTjHUOIJx9R1k" localhost:8080/bye
+```
+Produces:
+```
+{"timestamp":1481537257128,"status":403,"error":"Forbidden","exception":"org.springframework.security.access.AccessDeniedException","message":"Access is denied","path":"/bye"}
+```
+
+Now, let's request a token with `roles: ADMIN`.
+
+```
+curl -X POST -H "Content-Type: application/json" -d '{"aud":"gateway","sub":"bob", "roles": "ADMIN" }' localhost:8081/symmetricalToken?symmetricalKey=trdFmDVIKGhC8wR7be36Jyve3lqQRLTI
+```
+Produces:
+```
+eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJnYXRld2F5Iiwic3ViIjoiYm9iIiwicm9sZXMiOiJBRE1JTiJ9._YXXN3uYlnwHQoQ05k_5uG-TNhuGJZ5QefWxpPNQM4k
+```
+Send `/bye` request to the `gateway` app:
+```
+curl -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJnYXRld2F5Iiwic3ViIjoiYm9iIiwicm9sZXMiOiJBRE1JTiJ9._YXXN3uYlnwHQoQ05k_5uG-TNhuGJZ5QefWxpPNQM4k" localhost:8080/bye
+```
 
 ## Json Web Token service (`jwt-token-service`)
 
