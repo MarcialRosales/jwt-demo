@@ -102,7 +102,7 @@ Send `/bye` request to the `gateway` app:
 curl -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJnYXRld2F5Iiwic3ViIjoiYm9iIiwicm9sZXMiOiJBRE1JTiJ9._YXXN3uYlnwHQoQ05k_5uG-TNhuGJZ5QefWxpPNQM4k" localhost:8080/bye
 ```
 
-### Securing Service-to-Service calls
+### Securing Service-to-Service calls where the downstream service is a client resource
 First of all, launch `backend-service` application that runs by default on port 8082.
 
 Lets create a token for `Bob` with the roles `ADMIN,backend.read`:
