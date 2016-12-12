@@ -77,6 +77,7 @@ class CustomResponseErrorHandler implements ResponseErrorHandler {
     public void handleError(ClientHttpResponse response) throws IOException {
         switch(response.getRawStatusCode()) {
         case 403:
+        case 401:
         	throw new org.springframework.security.access.AccessDeniedException(response.getStatusText());
         }
         myErrorHandler.handleError(response);

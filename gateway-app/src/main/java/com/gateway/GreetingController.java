@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -37,16 +38,18 @@ public class GreetingController {
 	@GetMapping("/admin")
 	@PreAuthorize("hasAuthority('ADMIN')")
 	public String admin(Principal principal) {
-		return "executed admin task for " + principal;
+		return "executed admin task for " + principal.getName();
 	}
 	
 	@GetMapping("/resource")
-	public void read(@AuthenticationPrincipal AuthenticatedUser user) {
-		resourceRestTemplate.exchange(resourceUrl, HttpMethod.GET, null, Void.class, Collections.emptyMap());
+	public String read(@AuthenticationPrincipal AuthenticatedUser user) {
+		 ResponseEntity<String> response = resourceRestTemplate.exchange(resourceUrl, HttpMethod.GET, null, String.class, Collections.emptyMap());
+		 return response.getBody();
 	}
 	@PostMapping("/resource")
-	public void write(@AuthenticationPrincipal AuthenticatedUser user) {
-		resourceRestTemplate.exchange(resourceUrl, HttpMethod.POST, null, Void.class, Collections.emptyMap());
+	public String write(@AuthenticationPrincipal AuthenticatedUser user) {
+		ResponseEntity<String> response =  resourceRestTemplate.exchange(resourceUrl, HttpMethod.POST, null, String.class, Collections.emptyMap());
+		return response.getBody();
 	}
 	
 	@GetMapping("/backend")

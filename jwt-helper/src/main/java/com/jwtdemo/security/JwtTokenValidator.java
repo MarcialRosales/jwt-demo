@@ -57,7 +57,7 @@ public class JwtTokenValidator {
             // Security measure: Enforce date validation
             // TODO
             
-           return  new AuthenticatedUser(body.getSubject(), "", buildAuthorities(body));
+           return  new AuthenticatedUser(body.getSubject(), token, buildAuthorities(body));
             
         } catch (JwtException | UnsupportedEncodingException e) {
             throw new BadCredentialsException(e.getMessage());
