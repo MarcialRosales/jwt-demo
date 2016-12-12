@@ -10,7 +10,7 @@ The Gateway app presents just a root end point, `/`. It returns us a greeting me
 
 Note: The Gateway is initialized with a symmetrical key under `application.yml` and property `jwt.secret`.
 
-Let's try various requests.
+Let's try various requests. But first, launch it (it runs by default on port 8080).
 
 ### Non-authenticated request should get back a `401` status code.
 
@@ -28,7 +28,7 @@ First of all, we are going to copy into the clipboard the symmetrical key config
 ```
 trdFmDVIKGhC8wR7be36Jyve3lqQRLTI
 ```
-Next we are going to submit the following request to `jwt-token-service`:
+Next we are going to submit the following request to `jwt-token-service`. First of all, launch it (it runs on port 8081).
 ```
 curl -X POST -H "Content-Type: application/json" -d '{"aud":"gateway","sub":"bob"}' localhost:8081/symmetricalToken?symmetricalKey=trdFmDVIKGhC8wR7be36Jyve3lqQRLTI
 ```
@@ -101,7 +101,8 @@ Send `/bye` request to the `gateway` app:
 curl -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJnYXRld2F5Iiwic3ViIjoiYm9iIiwicm9sZXMiOiJBRE1JTiJ9._YXXN3uYlnwHQoQ05k_5uG-TNhuGJZ5QefWxpPNQM4k" localhost:8080/bye
 ```
 
-## Securing Service-to-Service calls
+### Securing Service-to-Service calls
+First of all, launch `backend-service` application that runs by default on port 8082.
 
 Lets create a token for `Bob` with the roles `ADMIN,backend.read`:
 ```
