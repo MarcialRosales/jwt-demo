@@ -61,7 +61,7 @@ Produces:
 
 Request token with `aud: other`
 ```
-curl -X POST -H "Content-Type: application/json" -d '{"aud":"other","sub":"bob"}' localhost:8081/symetricalToken?symetricalKey=trdFmDVIKGhC8wR7be36Jyve3lqQRLTI
+curl -X POST -H "Content-Type: application/json" -d '{"aud":"other","sub":"bob"}' localhost:8081/symmetricalToken?symmetricalKey=trdFmDVIKGhC8wR7be36Jyve3lqQRLTI
 ```
 Produces:
 ```
