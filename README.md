@@ -213,11 +213,12 @@ Produces:
 
 ## Deploy to Pivotal Cloud Foundry
 
-We have launch locally the applications. Now we are going to deploy our applications, including the `token-service` to Pivotal Cloud Foundry. We have provided a script, `deploy.sh` that generates a symmetrical key and configures the applications to use that key and push the apps all in one go.
+So far we have been running the applications locally. Now we are going to deploy them, including the `token-service` to Pivotal Cloud Foundry. We have provided a script, `deploy.sh`, that generates a symmetrical key, configures the applications to use the key and push the apps all in one go.
 
-To facilitate testing, we have provided a script, `. ./generateTokens`, that generates different tokens that we can use to test the various authorization scenarios described earlier. Once you execute the script, you can use them like this:
+To facilitate testing, we have provided a script, `generateTokens.sh`, that generates different tokens that we can use to test the  authorization scenarios described earlier. Once you execute the script, you can use them like this:
 
 ```
+. ./generateTokens.sh
 gateway=`cf app gateway | grep urls | awk '{print $2}'`
 curl -H "Authorization: Bearer $symGatewayBob" http://$gateway
 ```
