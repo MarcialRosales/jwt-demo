@@ -156,7 +156,7 @@ See how the `gateway` does not send the client's token to the `backend-service`.
 
 `gateway` is already configured with a valid token. Check out `application.yml#backend.key` property.
 
-Lets launch first the `backend-service` and then send a `/backend` request to the `gateway`. See that we can use any of the valid JWT we used in the previous sections. 
+Lets launch first the `backend-service` and then send a `/backend` request to the `gateway`. See that we can use any of the valid JWT we used in the previous sections.
 ```
 curl -H "Authorization: Bearer $token" localhost:8080/backend
 ```
@@ -194,14 +194,14 @@ openssl req  -nodes -new -x509  -keyout server.key -out server.cert
 openssl pkcs8 -topk8 -inform PEM -outform PEM -nocrypt -in server.key -out private.key
 openssl x509 -pubkey -noout -in server.cert > public.key
 ```
-Note: Java's ``PKCS8EncodedKeySpec`` class only understands `PKCS8` format. OpenSSL generates the private key is different format.
+Note: Java's ``PKCS8EncodedKeySpec`` class only understands `PKCS8` format. OpenSSL generates the private key in a different format.
 
 Now we generate a token and we digitally sign it using the `private.key` file.
 ```
 token=`curl -s -X POST -H "Content-Type: multipart/form-data" -F claims='{"aud":"gateway", "sub":"bob" }' -F asymkey=@private.key localhost:8081/token`
 ```
 
-### Verify token signed using a asymmetrical key
+### Verify token signed using asymmetrical key (RSA)
 Assuming you have executed the previous command, we have the token in the variable `token` and the public key in the `public.key` file.
 ```
 curl -s -X POST -H "Content-Type: multipart/form-data" -F asymkey=@public.key -F token=$key localhost:8081/verify
