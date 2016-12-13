@@ -1,11 +1,11 @@
 package com.jwtdemo.security;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import java.util.Collection;
+
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.util.Collection;
-import java.util.Date;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /**
  * Holds the info for a authenticated user (Principal)
