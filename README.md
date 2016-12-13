@@ -15,9 +15,9 @@ A second scenario is where the client sends a request and the `gateway` applicat
 In this scenario, the `backend-service` does not serve any client's resource hence it does not really need a client's JWT. Instead, it expects a JWT token which has `aud` = `backend-service`.
 
 In this demonstration project we are leveraging 2 authorization methods. One is the traditional role-based authorization which compares the user's roles contained within a JWT Token with the roles expected by the application. The second method is based on the JWT Specification :
-```
-The principal intended to process the JWT MUST be identified with the value of the audience claim. If the principal processing the claim does not identify itself with the identifier in the aud claim value then the JWT MUST be rejected.
-```
+
+>The principal intended to process the JWT MUST be identified with the value of the audience claim. If the principal processing the claim does not identify itself with the identifier in the aud claim value then the JWT MUST be rejected.
+
 
 ## Authorization scenarios
 
