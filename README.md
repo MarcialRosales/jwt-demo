@@ -29,7 +29,7 @@ The signing key is configured in `application.yml#jwt.key` property. If the key 
 In the following sections we are going to generate tokens (via the `token-service`) to test various scenarios. If the applications are running with the `symmetrical` profile remember to take the symmetrical key from one of the `application.yml#jwt.key` property. In the contrary, if you are testing with the `asymmetrical` profile use the `private.key` file. For further details, check out the section [JWT Token Service](#json-web-token-service-jwt-token-service)
 
 
-### Non-authenticated request should get back a `401` status code.
+### Scenario 1. Non-authenticated request should get back a `401` status code.
 Our first scenario attempts to access our `gateway` application without any tokens.
 
 Launch the `gateway` application and try this request.
@@ -42,7 +42,7 @@ Produces:
 {"timestamp":1481534933500,"status":401,"error":"Unauthorized","message":"Authentication Failed: JWT token not found","path":"/"}
 ```
 
-### Authenticated request with both, `aud` and `sub` claims, and signed with the same key as configured in the `application.yml` should get back a `200` status code and a greeting message.
+### Scenario 2. Authenticated request with both, `aud` and `sub` claims, and signed with the same key as configured in the `application.yml` should get back a `200` status code and a greeting message.
 In order to access the gateway, we need to have a valid token. Let's launch `token-service`. This service exposes one simple rest endpoint which takes one request parameter which is the key we want to use to sign the token. We are going to copy into the clipboard the symmetrical key configured in our gateway app (`application.yml#jwt.key`).
 
 ```
@@ -64,7 +64,7 @@ Produces:
 hello bob
 ```
 
-### Invalid signatures should get back `401` status code.
+### Scenario 3. Invalid signatures should get back `401` status code.
 Let's try an invalid signature. Simply change the last character of the token.
 ```
 curl -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJnYXRld2F5Iiwic3ViIjoiYm9iIn0.-UDM8eThnUL_0rDZcGbmjMTjHUOIJx9R1q" localhost:8080
@@ -74,7 +74,7 @@ Produces:
 {"timestamp":1481535342194,"status":401,"error":"Unauthorized","message":"Authentication Failed: JWT signature does not match locally computed signature. JWT validity cannot be asserted and should not be trusted.","path":"/"}
 ```
 
-### JWT without a matching audience should get back `401` status code.
+### Scenario 4. JWT without a matching audience should get back `401` status code.
 The `gateway` expects a token whose `aud` claim matches its name, `gateway`. What happens if we send a token which has a different audience.
 
 Request token with `aud: other`
@@ -91,7 +91,7 @@ Produces:
 {"timestamp":1481535529491,"status":401,"error":"Unauthorized","message":"Authentication Failed: Expected aud claim to be: gateway, but was: other.","path":"/"}
 ```
 
-### Role-based Authorization
+### Scenario 5. Role-based Authorization
 So far we have reached endpoints which does not require further checks besides the `aud`. But the `gateway` exposes another endpoint, `/bye` which requires the user to have the `ADMIN` role. This role is contained in an agreed JWT claim. The name of this claim is configurable (`application.yml#jwt.claimName`) by default the name is `roles` (comma-separated values).
 
 Let's try first sending a request which has no roles (`$token` variable created in the previous scenario).
@@ -114,7 +114,7 @@ Send `/bye` request to the `gateway` app:
 curl -H "Authorization: Bearer $token" localhost:8080/bye
 ```
 
-### Securing downstream client resource (e.g. a service that deals with user's information)
+### Scenario 6. Securing downstream client resource (e.g. a service that deals with user's information)
 The `gateway` endpoints we have seen so far do not delegate to other endpoints. In this scenario, the client is sending a request which either access or manipulates its own resource, say its account, or its messages, etc. The client's resource are served by another service called `resource-service`. The `resource-service` is our downstream service that the `gateway` will call.
 
 The flow is as follows:
@@ -144,7 +144,7 @@ Produces:
 {"timestamp":1481543136869,"status":403,"error":"Forbidden","exception":"org.springframework.security.access.AccessDeniedException","message":"No message available","path":"/backend"}
 ```
 
-### Securing Service-to-Service calls where the downstream service is a not a client resource (e.g. an infrastructure service)
+### Scenario 7. Securing Service-to-Service calls where the downstream service is a not a client resource (e.g. an infrastructure service)
 In the previous scenario, the gateway called a downstream service which served clients' resources. But there are other scenarios where our `gateway` application needs to call infrastructure services, i.e. services which does not server clients' resources.
 `backend-service` is our downstream service that the `gateway` will call. This service requires the caller to pass a JWT with the `aud` claim equal to `backend`.
 
