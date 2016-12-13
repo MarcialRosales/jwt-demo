@@ -1,0 +1,6 @@
+---
+applications:
+- name: token-service
+  host: token-service
+  path: '@project.build.finalName@.jar'
+  

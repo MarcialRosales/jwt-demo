@@ -1,0 +1,8 @@
+---
+applications:
+- name: backend-service
+  host: backend-service
+  path: '@project.build.finalName@.jar'
+  env:
+    JWT_SECRET: '@jwt_secret@'  
+  

@@ -1,0 +1,11 @@
+---
+applications:
+- name: gateway
+  host: gateway
+  path: '@project.build.finalName@.jar'
+  env:
+    JWT_SECRET: '@jwt_secret@'  
+    BACKEND_URL: '@backend_url@'
+    BACKEND_TOKEN: '@backend_token@'
+    RESOURCE_URL: '@resource_url@'
+    

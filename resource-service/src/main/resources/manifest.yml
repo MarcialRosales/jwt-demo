@@ -1,0 +1,8 @@
+---
+applications:
+- name: resource-service
+  host: resource-service
+  path: '@project.build.finalName@.jar'
+  env:
+    JWT_SECRET: '@jwt_secret@'  
+  
