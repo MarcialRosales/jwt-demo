@@ -13,12 +13,36 @@ security:
 
 backend:
   url: http://localhost:8082
-  token: eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJiYWNrZW5kIiwic3ViIjoiZ2F0ZXdheSJ9.g4RB6Tb53sWtoErMtNGB4S_J0_x7MobOl-2WRha5EaU
   
 resource:
   url: http://localhost:8083
       
 jwt:
   requireAudience: ${spring.application.name} # Enforce token contains 'aud' claim equal to this application's name 
-  secret: trdFmDVIKGhC8wR7be36Jyve3lqQRLTI
-    
+
+
+spring.profiles.active: symmetrical 
+
+---
+spring.profiles: symmetrical
+jwt:
+  key: trdFmDVIKGhC8wR7be36Jyve3lqQRLTI
+backend: # backend's token signed by this symmetrical key
+  token: eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJiYWNrZW5kIiwic3ViIjoiZ2F0ZXdheSJ9.g4RB6Tb53sWtoErMtNGB4S_J0_x7MobOl-2WRha5EaU
+
+---
+spring.profiles: asymmetrical
+jwt:
+  key: |
+    -----BEGIN PUBLIC KEY-----
+    MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDIMYCn08jNm8KjNjx7NZD+6uGo
+    PZJVQIzWcTAB+bEb3v/tHtCrpGZDI7rW5PmIeIznJU6sNxlIzzJV/fqSgBQ6dZ+6
+    DTRhPfDhWSi9aDhAJvL5BZ2lvgPdEDweSAncRtqgnPTK74QZiROubEr+PrrIUvwL
+    w4dtiZhxAqCJFJUKbwIDAQAB
+    -----END PUBLIC KEY-----
+
+backend: # backend's token signed by the private key associated to the jwt.key 
+  token: eyJhbGciOiJSUzI1NiJ9.eyJhdWQiOiJiYWNrZW5kIiwic3ViIjoiYm9iIn0.xwHGjzWER15DU9F-ucZGjJwpVOAC_mTiSvHpc-AravBDFCRHbZrn4Idr6H_cCo92Wq8JAF35mrg09XWfImsCtN3gWbAStNV6ftiu6H6ws9AdSeqCxjp43O4yA-_uE9rsGQfbS7L7EeOfFGZYmOBpa_mq4cL-G783IV-6T_t1_bQ
+  
+  
+        

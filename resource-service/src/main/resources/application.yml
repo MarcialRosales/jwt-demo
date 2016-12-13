@@ -8,10 +8,26 @@ spring:
     chain:
       enabled: true
       
+  profiles:
+    active: symmetrical 
+      
 security:
   basic:
     enabled: false      
-    
+   
+---
+spring.profiles: symmetrical
 jwt:
-  secret: trdFmDVIKGhC8wR7be36Jyve3lqQRLTI
+  key: trdFmDVIKGhC8wR7be36Jyve3lqQRLTI
+
+---
+spring.profiles: asymmetrical
+jwt:
+  key: |
+    -----BEGIN PUBLIC KEY-----
+    MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDIMYCn08jNm8KjNjx7NZD+6uGo
+    PZJVQIzWcTAB+bEb3v/tHtCrpGZDI7rW5PmIeIznJU6sNxlIzzJV/fqSgBQ6dZ+6
+    DTRhPfDhWSi9aDhAJvL5BZ2lvgPdEDweSAncRtqgnPTK74QZiROubEr+PrrIUvwL
+    w4dtiZhxAqCJFJUKbwIDAQAB
+    -----END PUBLIC KEY-----
     

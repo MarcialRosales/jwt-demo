@@ -1,6 +1,6 @@
 #Json Web Token demonstration
 
-Demonstrate how to secure applications using Json Web Token.
+Demonstrate how to secure applications using Json Web Token using symmetrical and asymmetrical keys.
 
 There are 2 authorization scenarios. One scenario where the client (`AnyRestClient`) sends a request whose purpose is to access/manipulate a client's resource, e.g. its account, its messages, etc. The client's resources are served by a downstream service called `resource-service`. But the client does not directly interact with the `resource-service` but via a `gateway` app.
 ```
@@ -19,14 +19,14 @@ In this demonstration project we are leveraging 2 authorization methods. One is 
 The principal intended to process the JWT MUST be identified with the value of the audience claim. If the principal processing the claim does not identify itself with the identifier in the aud claim value then the JWT MUST be rejected.
 ```
 
-
 ## Authorization scenarios
 
 Our rest client (curl, Postman, or whatever you prefer) talks to the `Gateway` which runs on port 8080. This application expects all requests to provide, at least, a signed JWT token (a.k.a. JWS) with at least these 2 claims: `sub` the Subject and `aud` the Audience which must match the name of our gateway application (i.e. `gateway`).
 
-This demonstration project uses -at least for now- Symmetrical keys to sign the token. In particular, it uses HS256. In order to verify a signature, we need the symmetrical key that produced it. The `Gateway` is initialized with a symmetrical key on the `application.yml#jwt.secret` property.
+This demonstration project supports both, symmetrical and asymmetrical keys. The `token-service` is capable of issuing JWT tokens signed using both type of keys. The applications `gateway`, `resource-service` and `backend-service` are also configured to support both types of signatures. We can select which type of signature we want to use by activating the right Spring profile. It has 2 profiles: `symmetrical` and `asymmetrical`, being the former the default one.
+The key is configured in `application.yml#jwt.key` property. If the key is symmetrical, all applications including the `token-service` must use the same key. If the key is asymmetrical, the `token-service` has the private key (found in the file `private.key` and the applications have the public key (found in the file `public.key`).
 
-We will need to generate tokens for our client. We have provided an application called `token-service` that issues tokens signed with the same symmetrical key configured in the `gateway` (and also in other apps).
+In the following sections we are going to generate tokens (via the `token-service`) to test various scenarios. If the applications are running with the `symmetrical` profile remember to take the symmetrical key from one of the `application.yml#jwt.key` property. In the contrary, if you are testing with the `asymmetrical` profile use the `private.key` file.
 
 
 ### Non-authenticated request should get back a `401` status code.
@@ -43,24 +43,21 @@ Produces:
 ```
 
 ### Authenticated request with both, `aud` and `sub` claims, and signed with the same key as configured in the `application.yml` should get back a `200` status code and a greeting message.
-In order to access the gateway, we need to have a valid token. Let's launch `token-service`. This service exposes one simple rest endpoint which takes one request parameter which is the key we want to use to sign the token. We are going to copy into the clipboard the symmetrical key configured in our gateway app (`application.yml#jwt.secret`).
+In order to access the gateway, we need to have a valid token. Let's launch `token-service`. This service exposes one simple rest endpoint which takes one request parameter which is the key we want to use to sign the token. We are going to copy into the clipboard the symmetrical key configured in our gateway app (`application.yml#jwt.key`).
 
 ```
 trdFmDVIKGhC8wR7be36Jyve3lqQRLTI
 ```
 Next we are going to submit the following request to `jwt-token-service`. See that we are declaring 2 claims, `aud` and `sub`.
 ```
-curl -X POST -H "Content-Type: application/json" -d '{"aud":"gateway","sub":"bob"}' localhost:8081/symmetricalToken?symmetricalKey=trdFmDVIKGhC8wR7be36Jyve3lqQRLTI
-```
-Produces:
-```
-eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJnYXRld2F5Iiwic3ViIjoiYm9iIn0.-UDM8eThnUL_0rDZcGbmjMSQsE5aqpRTjHUOIJx9R1k
+symkey=trdFmDVIKGhC8wR7be36Jyve3lqQRLTI
+token=`curl -X POST -H "Content-Type: multipart/form-data" -F claims='{ "aud":"gateway", "sub":"bob" }' -F symkey=$symkey localhost:8081/token`
 ```
 
 And finally, we are going to submit a request to the `gateway` using the token we just obtained.
 
 ```
-curl -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJnYXRld2F5Iiwic3ViIjoiYm9iIn0.-UDM8eThnUL_0rDZcGbmjMSQsE5aqpRTjHUOIJx9R1k" localhost:8080
+curl -H "Authorization: Bearer $token" localhost:8080
 ```
 Produces:
 ```
@@ -82,15 +79,12 @@ The `gateway` expects a token whose `aud` claim matches its name, `gateway`. Wha
 
 Request token with `aud: other`
 ```
-curl -X POST -H "Content-Type: application/json" -d '{"aud":"other","sub":"bob"}' localhost:8081/symmetricalToken?symmetricalKey=trdFmDVIKGhC8wR7be36Jyve3lqQRLTI
-```
-Produces:
-```
-eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJvdGhlciIsInN1YiI6ImJvYiJ9.Z7Q_SveBQpMaVtTNslfsht1yLF04AMd7IDBGzldVrEc
+symkey=trdFmDVIKGhC8wR7be36Jyve3lqQRLTI
+token=`curl -X POST -H "Content-Type: multipart/form-data" -F claims='{ "aud":"other", "sub":"bob" }' -F symkey=$symkey localhost:8081/token`
 ```
 Send request to gateway:
 ```
-curl -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJvdGhlciIsInN1YiI6ImJvYiJ9.Z7Q_SveBQpMaVtTNslfsht1yLF04AMd7IDBGzldVrEc" localhost:8080
+curl -H "Authorization: Bearer $token" localhost:8080
 ```
 Produces:
 ```
@@ -100,9 +94,9 @@ Produces:
 ### Role-based Authorization
 So far we have reached endpoints which does not require further checks besides the `aud`. But the `gateway` exposes another endpoint, `/bye` which requires the user to have the `ADMIN` role. This role is contained in an agreed JWT claim. The name of this claim is configurable (`application.yml#jwt.claimName`) by default the name is `roles` (comma-separated values).
 
-Let's try first sending a request which has no roles.
+Let's try first sending a request which has no roles (`$token` variable created in the previous scenario).
 ```
-curl -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJnYXRld2F5Iiwic3ViIjoiYm9iIn0.-UDM8eThnUL_0rDZcGbmjMSQsE5aqpRTjHUOIJx9R1k" localhost:8080/bye
+curl -H "Authorization: Bearer $token" localhost:8080/bye
 ```
 Produces:
 ```
@@ -110,17 +104,14 @@ Produces:
 ```
 
 Now, let's request a token with `roles: ADMIN`.
+```
+symkey=trdFmDVIKGhC8wR7be36Jyve3lqQRLTI
+token=`curl -X POST -H "Content-Type: multipart/form-data" -F claims='{ "aud":"gateway", "sub":"bob", "roles": "ADMIN" }' -F symkey=$symkey localhost:8081/token`
+```
 
-```
-curl -X POST -H "Content-Type: application/json" -d '{"aud":"gateway","sub":"bob", "roles": "ADMIN" }' localhost:8081/symmetricalToken?symmetricalKey=trdFmDVIKGhC8wR7be36Jyve3lqQRLTI
-```
-Produces:
-```
-eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJnYXRld2F5Iiwic3ViIjoiYm9iIiwicm9sZXMiOiJBRE1JTiJ9._YXXN3uYlnwHQoQ05k_5uG-TNhuGJZ5QefWxpPNQM4k
-```
 Send `/bye` request to the `gateway` app:
 ```
-curl -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJnYXRld2F5Iiwic3ViIjoiYm9iIiwicm9sZXMiOiJBRE1JTiJ9._YXXN3uYlnwHQoQ05k_5uG-TNhuGJZ5QefWxpPNQM4k" localhost:8080/bye
+curl -H "Authorization: Bearer $token" localhost:8080/bye
 ```
 
 ### Securing downstream client resource (e.g. a service that deals with user's information)
@@ -134,22 +125,19 @@ The `resource-service` exposes one endpoint `/resource` and 2 operations, `GET` 
 
 Lets create a token for our user `Bob` with the roles `ADMIN,resource.read`:
 ```
-curl -X POST -H "Content-Type: application/json" -d '{"aud":"gateway","sub":"bob", "roles": "ADMIN,resource.read" }' localhost:8081/symmetricalToken?symmetricalKey=trdFmDVIKGhC8wR7be36Jyve3lqQRLTI
-```
-Produces:
-```
-eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJnYXRld2F5Iiwic3ViIjoiYm9iIiwicm9sZXMiOiJBRE1JTixiYWNrZW5kLnJlYWQifQ.986Yzi0m5zTyncyLmnL_fxec8R5bw2msOUKXtR9x_9Q
+symkey=trdFmDVIKGhC8wR7be36Jyve3lqQRLTI
+token=`curl -X POST -H "Content-Type: multipart/form-data" -F claims='{ "aud":"gateway", "sub":"bob", "roles": "ADMIN,resource.read" }' -F symkey=$symkey localhost:8081/token`
 ```
 
 Let's launch the resource-service first. Now we send a `GET` request:
 ```
-curl  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJnYXRld2F5Iiwic3ViIjoiYm9iIiwicm9sZXMiOiJBRE1JTixiYWNrZW5kLnJlYWQifQ.986Yzi0m5zTyncyLmnL_fxec8R5bw2msOUKXtR9x_9Q" localhost:8080/resource
+curl  -H "Authorization: Bearer $token" localhost:8080/resource
 ```
 It should succeed (it returns nothing).
 
 But if we send a `POST` request, it should fail because our user hasn't got yet the `resource.write` role.
 ```
-curl -X POST -d '' -H  "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJnYXRld2F5Iiwic3ViIjoiYm9iIiwicm9sZXMiOiJBRE1JTixiYWNrZW5kLnJlYWQifQ.986Yzi0m5zTyncyLmnL_fxec8R5bw2msOUKXtR9x_9Q" localhost:8080/resource
+curl -X POST -d '' -H  "Authorization: Bearer $token" localhost:8080/resource
 ```
 Produces:
 ```
@@ -166,22 +154,59 @@ The flow is as follows:
 ```
 See how the `gateway` does not send the client's token to the `backend-service`. Instead it uses the token that authorizes it to talk to the `backend-service`.
 
-`gateway` is already configured with a valid token. Check out `application.yml#backend.secret` property. It was obtained using this request:
-```
-curl -X POST -H "Content-Type: application/json" -d '{"aud":"backend", "sub": "gateway" }' localhost:8081/symmetricalToken?symmetricalKey=trdFmDVIKGhC8wR7be36Jyve3lqQRLTI
-```
+`gateway` is already configured with a valid token. Check out `application.yml#backend.key` property.
 
-Lets launch first the `backend-service` and then send a `/backend` request to the `gateway`. See that we can use any of the valid JWT we used in the previous sections.
+Lets launch first the `backend-service` and then send a `/backend` request to the `gateway`. See that we can use any of the valid JWT we used in the previous sections. 
 ```
-curl -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJnYXRld2F5Iiwic3ViIjoiYm9iIiwicm9sZXMiOiJBRE1JTixiYWNrZW5kLnJlYWQifQ.986Yzi0m5zTyncyLmnL_fxec8R5bw2msOUKXtR9x_9Q" localhost:8080/backend
+curl -H "Authorization: Bearer $token" localhost:8080/backend
 ```
 
 ## Json Web Token service (`jwt-token-service`)
 
 Rest service that issues JWT tokens to facilitate testing.
 
-To request a symmetrically signed JWT token we submit the following request where we specify as a request parameter (`symmetricalKey`) the key and claims -in json format- in the request's body.
+### Generate a symmetrical key
+```
+symkey=`curl localhost:8081/key`
+```
+
+### Generate token using symmetrical key
+Assuming we have executed the previous command, we have the symmetrical key in the variable `symkey`.
+```
+token=`curl -X POST -H "Content-Type: multipart/form-data" -F claims='{"aud":"gateway", "sub":"bob" }' -F symkey=$symkey localhost:8081/token`
+```
+
+### Verify token signed using a symmetrical key
+Assuming you have executed the previous command, we have the token in the variable `token` and the symmetrical key in the variable `symkey`.
 
 ```
-curl -X POST -H "Content-Type: application/json" -d '{"aud":"gateway","sub":"bob"}' localhost:8081/symmetricalToken?symmetricalKey=trdFmDVIKGhC8wR7be36Jyve3lqQRLTI
+curl -X POST -H "Content-Type: multipart/form-data" -F symkey=$symkey -F token=$token localhost:8081/verify
+```
+Produces:
+```
+{"aud":"gateway","sub":"bob"}
+```
+
+### Generate token using asymmetrical key (RSA)
+First we need to generate a public/private key-pair. The following commands will produce 2 files: `private.key` and `public.key` that will use to sign and verify the JWT.
+```
+openssl req  -nodes -new -x509  -keyout server.key -out server.cert
+openssl pkcs8 -topk8 -inform PEM -outform PEM -nocrypt -in server.key -out private.key
+openssl x509 -pubkey -noout -in server.cert > public.key
+```
+Note: Java's ``PKCS8EncodedKeySpec`` class only understands `PKCS8` format. OpenSSL generates the private key is different format.
+
+Now we generate a token and we digitally sign it using the `private.key` file.
+```
+token=`curl -s -X POST -H "Content-Type: multipart/form-data" -F claims='{"aud":"gateway", "sub":"bob" }' -F asymkey=@private.key localhost:8081/token`
+```
+
+### Verify token signed using a asymmetrical key
+Assuming you have executed the previous command, we have the token in the variable `token` and the public key in the `public.key` file.
+```
+curl -s -X POST -H "Content-Type: multipart/form-data" -F asymkey=@public.key -F token=$key localhost:8081/verify
+```
+Produces:
+```
+{"aud":"gateway","sub":"bob"}
 ```

@@ -1,10 +1,18 @@
 package com.jwtdemo.security;
 
 import java.io.UnsupportedEncodingException;
+import java.security.Key;
+import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.Collection;
 import java.util.Collections;
 
-import org.slf4j.Logger;
+import javax.crypto.spec.SecretKeySpec;
+import javax.xml.bind.DatatypeConverter;
+
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
@@ -20,23 +28,20 @@ import io.jsonwebtoken.SignatureAlgorithm;
 
 public class JwtTokenValidator {
 
-    private String secret;
+    private Key key;
     private String requireAudience;
     private String roleClaimName;
-    
-    private static Logger log = org.slf4j.LoggerFactory.getLogger(JwtTokenValidator.class);
-    
-    public JwtTokenValidator(String secret, String requireAudience, String roleClaimName) {
+        
+    public JwtTokenValidator(Key key, String requireAudience, String roleClaimName) {
 		super();
-		this.secret = secret;
+		this.key = key;
+		
 		this.requireAudience = requireAudience;
 		this.roleClaimName = roleClaimName;
 	}
 
-	public AuthenticatedUser parseToken(String token) {
+	public AuthenticatedUser parseToken(String token) { 
     	try {
-        	log.debug("using key: [%s] to validate token \n%s", secret, token);
-
             Jws<Claims> jwt = parser().parseClaimsJws(token);
             Claims body = jwt.getBody();
             
@@ -64,7 +69,7 @@ public class JwtTokenValidator {
     // Once it is confirmed that JwtParser is thread-safe we can have a single instance
     // https://github.com/jwtk/jjwt/issues/171
     private JwtParser parser() throws UnsupportedEncodingException {
-    	JwtParser parser =  Jwts.parser().setSigningKey(secret.getBytes("UTF-8"));
+    	JwtParser parser =  Jwts.parser().setSigningKey(key);
     	
     	if (requireAudience != null) {
     		parser.requireAudience(requireAudience);
@@ -81,5 +86,30 @@ public class JwtTokenValidator {
     	
     }
     
+    public static Key buildKey(String key, String algo) throws UnsupportedEncodingException, NoSuchAlgorithmException, InvalidKeySpecException {
+    	if (isPublicKey(key)) { 
+    		return fromPEMtoPublicKey(key);
+    	}else {
+    		return new SecretKeySpec(key.getBytes("UTF-8"), algo == null ? "HS256" : algo);
+    	}
+    }
+    
+    private static PublicKey fromPEMtoPublicKey(String pem) throws NoSuchAlgorithmException, InvalidKeySpecException {
+		byte[] encoded = DatatypeConverter.parseBase64Binary(removeX509Wrapper(pem));
+
+		// PKCS8 decode the encoded RSA private key
+		X509EncodedKeySpec keySpec = new X509EncodedKeySpec(encoded);
+		KeyFactory kf = KeyFactory.getInstance("RSA");
+		PublicKey pubKey = kf.generatePublic(keySpec);
+
+		return pubKey;
+	}
+    private static boolean isPublicKey(String cert) {
+    	return cert.startsWith("-----BEGIN PUBLIC KEY-----\n");
+    }
+    private static String removeX509Wrapper(String cert) {
+		cert = cert.replace("-----BEGIN PUBLIC KEY-----\n", "");
+		return cert.replace("-----END PUBLIC KEY-----", "");
+	}
  
 }
