@@ -211,7 +211,7 @@ Produces:
 {"aud":"gateway","sub":"bob"}
 ```
 
-# Deploy to Pivotal Cloud Foundry
+## Deploy to Pivotal Cloud Foundry
 
 We have launch locally the applications. Now we are going to deploy our applications, including the `token-service` to Pivotal Cloud Foundry. We have provided a script, `deploy.sh` that generates a symmetrical key and configures the applications to use that key and push the apps all in one go.
 
