@@ -28,6 +28,7 @@ The signing key is configured in `application.yml#jwt.key` property. If the key 
 
 In the following sections we are going to generate tokens (via the `token-service`) to test various scenarios. If the applications are running with the `symmetrical` profile remember to take the symmetrical key from one of the `application.yml#jwt.key` property. In the contrary, if you are testing with the `asymmetrical` profile use the `private.key` file. For further details, check out the section [JWT Token Service](#json-web-token-service-jwt-token-service)
 
+We have provided a script, `start.sh`, that launches all 4 applications. By default, it will launch them with the `symmetrical` profile. To launch with the `asymmetrical` do: `./start.sh asymmetrical`. 
 
 ### Scenario 1. Non-authenticated request should get back a `401` status code.
 Our first scenario attempts to access our `gateway` application without any tokens.
