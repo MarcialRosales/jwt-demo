@@ -222,3 +222,14 @@ To facilitate testing, we have provided a script, `generateTokens.sh`, that gene
 gateway=`cf app gateway | grep urls | awk '{print $2}'`
 curl -H "Authorization: Bearer $symGatewayBob" http://$gateway
 ```
+
+### Provisioning Credentials using Environment variables
+There are several ways we can use to provision credentials to an application in PCF. One way is to provide them via environment variables. This is the approached we have followed in this project. We declare the `jwt.key` property as an environment variable in the `manifest.yml` (see below).
+```
+env:
+  JWT_KEY: eyJhbGciOiJSUzI1NiJ9.eyJhdWQiOiJnYXRld2F5Iiwic3ViIjoiYm9iIn0.unA8iC8Dea5F3aw8EO8QSEuIxiarDH8CRsq0AAAAV87BxMASnawDGjVjzg1p1yUNcQJ8U_q8sQ_InhAFdICwe10Fzc6QAAp1XzKcxSnWsaGshlupjeSdtoIAY_OcsU1JMMnpSvmwjJCR87snT1zp3Hi9je04fL_J-u2q1YqeXEw
+```
+(Spring Boot mapS JWT_KEY into jwt.key)
+
+### Provisioning Credentials using User Provided Service
+Another way to provision credentials is via [User Provided Services](https://docs.cloudfoundry.org/devguide/services/user-provided.html). This way allows us to separate the act of provisioning credentials from the act of pushing the application.  
