@@ -28,7 +28,7 @@ The signing key is configured in `application.yml#jwt.key` property. If the key 
 
 In the following sections we are going to generate tokens (via the `token-service`) to test various scenarios. If the applications are running with the `symmetrical` profile remember to take the symmetrical key from one of the `application.yml#jwt.key` property. In the contrary, if you are testing with the `asymmetrical` profile use the `private.key` file. For further details, check out the section [JWT Token Service](#json-web-token-service-jwt-token-service)
 
-We have provided a script, `start.sh`, that launches all 4 applications. By default, it will launch them with the `symmetrical` profile. To launch with the `asymmetrical` do: `./start.sh asymmetrical`. 
+We have provided a script, `start.sh`, that launches all 4 applications. By default, it will launch them with the `symmetrical` profile. To launch with the `asymmetrical` do: `./start.sh asymmetrical`.
 
 ### Scenario 1. Non-authenticated request should get back a `401` status code.
 Our first scenario attempts to access our `gateway` application without any tokens.
@@ -215,6 +215,7 @@ Produces:
 ## Deploy to Pivotal Cloud Foundry
 
 So far we have been running the applications locally. Now we are going to deploy them, including the `token-service` to Pivotal Cloud Foundry. We have provided a script, `deploy.sh`, that generates a symmetrical key, configures the applications to use the key and push the apps all in one go.
+Before calling `deploy.sh` you must have a valid login session and targeted the `cf` client to your `organization` and `space`.
 
 To facilitate testing, we have provided a script, `generateTokens.sh`, that generates different tokens that we can use to test the  authorization scenarios described earlier. Once you execute the script, you can use them like this:
 
@@ -234,3 +235,12 @@ env:
 
 ### Provisioning Credentials using User Provided Service
 Another way to provision credentials is via [User Provided Services](https://docs.cloudfoundry.org/devguide/services/user-provided.html). This way allows us to separate the act of provisioning credentials from the act of pushing the application.  
+
+
+## Limitations and further improvements
+
+As we already know, tokens are validated by matching the `aud` claim against the ID of the application which is validating the token. This means that a token can only be used to access one application/resource. What about if we could issue a token that grants access to several applications? For instance, `aud: "backend-service, resource-service"` grants access to `backend-service` and `resource-service` apps. Or even better use wildcard domains, `aud: "resource-service, infra."` grants access to the `resource-service` app and also to all the applications that match the expression `infra.*` for instance, `infra.cache-service` or `infra.file-service`. To make this possible we would have to change the `JWTTokenValidator` class.
+
+Applications are statically configured with a key. If the key were compromised, we would have to issue new tokens with a brand new key and reset the new key to all our applications. Say we were using an asymmetrical keys to sign the tokens. Our application could be configured with the url of the `token-service` from where it could download the public key every so often. If the `token service` rotated the private key, all applications would automatically get the new public key.
+
+Furthermore, we have statically configured the `gateway` application with the token it needs to access the `backend-service`. Ideally, tokens should be short-lived and applications should renew/refresh their tokens.
