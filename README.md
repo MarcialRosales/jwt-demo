@@ -10,7 +10,8 @@ In this scenario, the `resource-service` authorizes requests based on the client
 
 A second scenario is where the client sends a request and the `gateway` application needs to call a downstream infrastructure service, e.g. a notification service, a cache service, etc. This scenario does not necessarily need to be triggered by a client's action, it can also be triggered by other type of events like a time event or a message arrival event.
 ```
-    <AnyRestClient> ---http(with client_JWT)---> Gateway ---http(with gateway_JWT)----> backend-service
+    <AnyRestClient> ---http(with client_JWT)---> Gateway ---http(with gateway_JWT)----> backend-service (triggered by user)
+                                                 Gateway ---http(with gateway_JWT)----> backend-service (triggered by other event)
 ```
 In this scenario, the `backend-service` does not serve any client's resource hence it does not really need a client's JWT. Instead, it expects a JWT token which has `aud` = `backend-service`.
 
