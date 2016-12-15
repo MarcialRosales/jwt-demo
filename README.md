@@ -1,6 +1,6 @@
 #Json Web Token demonstration
 
-Demonstrate how to secure applications using Json Web Token using symmetrical and asymmetrical keys.
+Demonstrate how to secure applications (REST-api, no UI apps) using Json Web Token using symmetrical and asymmetrical keys.
 
 There are 2 authorization scenarios. One scenario where the client (`AnyRestClient`) sends a request whose purpose is to access/manipulate a client's resource, e.g. its account, its messages, etc. The client's resources are served by a downstream service called `resource-service`. But the client does not directly interact with the `resource-service` but via a `gateway` app.
 ```
