@@ -1,14 +1,24 @@
 #Json Web Token demonstration
 
-Demonstrate how to secure applications (REST-api, no UI apps) using Json Web Token using symmetrical and asymmetrical keys.
+Demonstrate how to secure enterprise applications (REST-api, no UI apps) using Json Web Token using symmetrical and asymmetrical keys. Typically, in the enterprise world, end-users do not decide which applications are authorized to access their resources. Instead, end-users are centrally managed by an identity provider and a number of roles get assigned to them (in case of RBAC - role based access control). This project demonstrate how we can secure traditional enterprise applications using JWT.   
 
-There are 2 authorization scenarios. One scenario where the client (`AnyRestClient`) sends a request whose purpose is to access/manipulate a client's resource, e.g. its account, its messages, etc. The client's resources are served by a downstream service called `resource-service`. But the client does not directly interact with the `resource-service` but via a `gateway` app.
+There are 3 authorization scenarios we can encounter in enterprise-like applications. But before we talk about authorization we should first talk about authentication which is outside of JWT discussion but it deserves bringing to our attention. There must be a login service where our users authenticate (by presenting their credentials like username/password) and they get back a JWT token. The JWT token encapsulates who this user is and what this user is entitled to do, i.e. roles, claims, whatever we want to call it.
+
+Once the user has a JWT token, the user can access applications secured with JWT. We are now going to see 3 typical authorization scenarios.
+
+First scenario is where the client (`AnyRestClient`) sends a request to an application which requires the user to have a given role.
+```
+    <AnyRestClient> ----http(with client_JWT)---> Gateway (requires ADMIN role)
+```
+In this scenario, the `gateway` authorizes requests based on the client's role found in the client's token.
+
+The second scenario is where the client (`AnyRestClient`) sends a request whose purpose is to access/manipulate a client's resource, e.g. its account, its messages, etc. The client's resources are served by a downstream service called `resource-service`. But the client does not directly interact with the `resource-service` but via a `gateway` app.
 ```
     <AnyRestClient> ----http(with client_JWT)---> Gateway --http(with client_JWT)------> resource-service
 ```
 In this scenario, the `resource-service` authorizes requests based on the client's JWT because it has the roles used by the `resource-service` to decide whether it accepts the request. e.g. `resource.read` or `resource.write`.
 
-A second scenario is where the client sends a request and the `gateway` application needs to call a downstream infrastructure service, e.g. a notification service, a cache service, etc. This scenario does not necessarily need to be triggered by a client's action, it can also be triggered by other type of events like a time event or a message arrival event.
+And the third scenario is where the client sends a request and the `gateway` application needs to call a downstream infrastructure service, e.g. a notification service, a cache service, etc. This scenario does not necessarily need to be triggered by a client's action, it can also be triggered by other type of events like a time event or a message arrival event.
 ```
     <AnyRestClient> ---http(with client_JWT)---> Gateway ---http(with gateway_JWT)----> backend-service (triggered by user)
                                                  Gateway ---http(with gateway_JWT)----> backend-service (triggered by other event)
@@ -34,7 +44,7 @@ We have provided a script, `start.sh`, that launches all 4 applications. By defa
 ### Scenario 1. Non-authenticated request should get back a `401` status code.
 Our first scenario attempts to access our `gateway` application without any tokens.
 
-Launch the `gateway` application and try this request.
+Launch the `gateway` application (if you have already executed the script `start.sh` it is already running on port 8080) and try this request.
 
 ```
 curl localhost:8080
@@ -215,8 +225,9 @@ Produces:
 
 ## Deploy to Pivotal Cloud Foundry
 
-So far we have been running the applications locally. Now we are going to deploy them, including the `token-service` to Pivotal Cloud Foundry. We have provided a script, `deploy.sh`, that generates a symmetrical key, configures the applications to use the key and push the apps all in one go.
-Before calling `deploy.sh` you must have a valid login session and targeted the `cf` client to your `organization` and `space`.
+### Secure applications in PCF using symmetrically signed tokens
+So far we have been running the applications locally. Now we are going to deploy them, including the `token-service` to Pivotal Cloud Foundry. We have provided a script, `deploy.sh`, that generates a symmetrical key, configures the applications to use that symmetrical key and push the apps all in one go.
+Before calling `deploy.sh` you must have a previously logged into CF (e.g. `cf login <targetURL>`).
 
 To facilitate testing, we have provided a script, `generateTokens.sh`, that generates different tokens that we can use to test the  authorization scenarios described earlier. Once you execute the script, you can use them like this:
 
@@ -225,6 +236,23 @@ To facilitate testing, we have provided a script, `generateTokens.sh`, that gene
 gateway=`cf app gateway | grep urls | awk '{print $2}'`
 curl -H "Authorization: Bearer $symGatewayBob" http://$gateway
 ```
+
+### Secure applications in PCF using asymmetrically signed tokens
+So far you have tried various requests against the `gateway` running in PCF and secured using symmetrically signed tokens. Now we are going to reconfigure those applications to use an asymmetrical key instead. To do so, invoke the following script `setAsymKeysAndRestage.sh`. This script assumes you have executed the `deploy.sh` script.
+
+`setAsymKeyAndRestage.sh` will use the key pair found in the files `private.key` and `public.key`.
+
+Step by step:
+1. execute `deploy.sh` if you have not already done it
+2. execute `setAsymKeyAndRestage.sh`
+3. `curl gateway.cfapps.pez.pivotal.io` should fail with `401 Unathorized` (assuming your gateway is running under gateway.cfapps.pez.pivotal.io)
+4. `tokenService=token-service.cfapps.pez.pivotal.io` (assuming your token-service application is running under `token-service.cfapps.pez.pivotal.io`)
+5. request a token
+```
+token=`curl -s -X POST -H "Content-Type: multipart/form-data" -F claims='{"aud":"gateway", "sub":"bob" }' -F asymkey=@private.key $tokenService/token`
+```
+6. `curl -H "Authorization: Bearer $token" gateway.cfapps.pez.pivotal.io` should suceed this time
+
 
 ### Provisioning Credentials using Environment variables
 There are several ways we can use to provision credentials to an application in PCF. One way is to provide them via environment variables. This is the approached we have followed in this project. We declare the `jwt.key` property as an environment variable in the `manifest.yml` (see below).
