@@ -94,15 +94,15 @@ Produces:
 ```
 
 ### Scenario 5. Role-based Authorization
-So far we have reached endpoints which does not require further checks besides the `aud`. But the `gateway` exposes another endpoint, `/bye` which requires the user to have the `ADMIN` role. This role is contained in an agreed JWT claim. The name of this claim is configurable (`application.yml#jwt.claimName`) by default the name is `roles` (comma-separated values).
+So far we have reached endpoints which does not require further checks besides the `aud`. But the `gateway` exposes another endpoint, `/admin` which requires the user to have the `ADMIN` role. This role is contained in an agreed JWT claim. The name of this claim is configurable (`application.yml#jwt.claimName`) by default the name is `roles` (comma-separated values).
 
 Let's try first sending a request which has no roles (`$token` variable created in the previous scenario).
 ```
-curl -H "Authorization: Bearer $token" localhost:8080/bye
+curl -H "Authorization: Bearer $token" localhost:8080/admin
 ```
 Produces:
 ```
-{"timestamp":1481537257128,"status":403,"error":"Forbidden","exception":"org.springframework.security.access.AccessDeniedException","message":"Access is denied","path":"/bye"}
+{"timestamp":1481537257128,"status":403,"error":"Forbidden","exception":"org.springframework.security.access.AccessDeniedException","message":"Access is denied","path":"/admin"}
 ```
 
 Now, let's request a token with `roles: ADMIN`.
@@ -111,9 +111,9 @@ symkey=trdFmDVIKGhC8wR7be36Jyve3lqQRLTI
 token=`curl -X POST -H "Content-Type: multipart/form-data" -F claims='{ "aud":"gateway", "sub":"bob", "roles": "ADMIN" }' -F symkey=$symkey localhost:8081/token`
 ```
 
-Send `/bye` request to the `gateway` app:
+Send `/admin` request to the `gateway` app:
 ```
-curl -H "Authorization: Bearer $token" localhost:8080/bye
+curl -H "Authorization: Bearer $token" localhost:8080/admin
 ```
 
 ### Scenario 6. Securing downstream client resource (e.g. a service that deals with user's information)
