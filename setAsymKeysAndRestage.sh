@@ -13,12 +13,10 @@ publicKey=$(cat public.key)
 
 echo "Updating backend-service with Public Key and activating asymmetrical profile ..."
 cf set-env backend-service JWT_KEY "${publicKey}"
-cf set-env backend-service SPRING_PROFILES_ACTIVE asymmetrical
 cf restage backend-service
 
 echo "Updating resource-service with Public Key and activating asymmetrical profile ..."
 cf set-env resource-service JWT_KEY "${publicKey}"
-cf set-env resource-service SPRING_PROFILES_ACTIVE asymmetrical
 cf restage resource-service
 
 echo "Issue Token for gateway to access backend-service"
@@ -28,7 +26,6 @@ echo "Updating gateway with Public Key and activating asymmetrical profile ..."
 
 cf set-env gateway JWT_KEY "${publicKey}"
 cf set-env gateway BACKEND_TOKEN "${backendToken}"
-cf set-env gateway SPRING_PROFILES_ACTIVE asymmetrical
 cf restage gateway
 
 echo "Done!"
