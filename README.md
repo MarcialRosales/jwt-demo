@@ -33,7 +33,7 @@ In this demonstration project we are leveraging 2 authorization methods. One is 
 > aud: ... The principal intended to process the JWT MUST be identified with the value of the audience claim. If the principal processing the claim does not identify itself with the identifier in the aud claim value then the JWT MUST be rejected.
 
 
-## Authorization scenarios
+## Authorization scenarios demonstration
 
 Our rest client (curl, Postman, or whatever you prefer) talks to the `Gateway` which runs on port 8080. This application expects all requests to provide, at least, a signed JWT token (a.k.a. JWS) with at least these 2 claims: `sub` the Subject and `aud` the Audience which must match the name of our gateway application (i.e. `gateway`).
 
