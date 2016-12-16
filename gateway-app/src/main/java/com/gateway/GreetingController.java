@@ -9,13 +9,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
-
-import com.jwtdemo.security.AuthenticatedUser;
 
 @RestController
 public class GreetingController {
@@ -42,12 +39,12 @@ public class GreetingController {
 	}
 	
 	@GetMapping("/resource")
-	public String read(@AuthenticationPrincipal AuthenticatedUser user) {
+	public String read() {
 		 ResponseEntity<String> response = resourceRestTemplate.exchange(resourceUrl, HttpMethod.GET, null, String.class, Collections.emptyMap());
 		 return response.getBody();
 	}
 	@PostMapping("/resource")
-	public String write(@AuthenticationPrincipal AuthenticatedUser user) {
+	public String write() {
 		ResponseEntity<String> response =  resourceRestTemplate.exchange(resourceUrl, HttpMethod.POST, null, String.class, Collections.emptyMap());
 		return response.getBody();
 	}
