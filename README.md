@@ -3,6 +3,7 @@
 Demonstrate how to secure enterprise applications (REST-api, no UI apps) using Json Web Token using symmetrical and asymmetrical keys. Typically, in the enterprise world, end-users do not decide about what they can or cannot do, i.e. their roles. Instead, end-users are centrally managed by an identity provider along with their roles (in case of RBAC - role based access control). This project demonstrate how we can secure traditional enterprise applications using JWT.   
 
 There are 3 authorization scenarios we can encounter in enterprise-like applications. But before we talk about authorization we should first talk about authentication which is outside of JWT discussion but it deserves bringing to our attention. There must be a login service where our users authenticate (by presenting their credentials like username/password) and they get back a JWT token. The JWT token encapsulates who this user is and what this user is entitled to do, i.e. roles, claims, whatever we want to call it.
+Clarification: For demonstration purposes, we have provided an application called `token-service` which issues tokens, the same tokens that a login service would issue upon a successful authentication. Our `token-service` does not authenticate users, it directly issue digitally signed tokens.
 
 Once the user has a JWT token, the user can access applications secured with JWT. We are now going to see 3 typical authorization scenarios.
 
