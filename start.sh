@@ -10,8 +10,8 @@ mvn spring-boot:run -Drun.profiles=$profile &
 popd
 
 
-echo "Building jwt-helper ..."
-pushd jwt-helper
+echo "Building jwt-starter ..."
+pushd jwt-starter
 mvn install
 popd
 

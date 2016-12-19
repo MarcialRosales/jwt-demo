@@ -20,15 +20,15 @@ if [! -d tmp ]; then
 fi
 echo $key > tmp/key
 
-echo "Building jwt-helper ..."
-pushd jwt-helper
+echo "Building jwt-starter ..."
+pushd jwt-starter
 mvn install
 popd
 
 echo "Push backend-service ..."
 pushd backend-service
 mvn package
-mvn resources:resources -Djwt_secret=$key
+mvn resources:resources -Djwt_key=$key
 
 cf push -f target/manifest.yml
 backendService=`cf app backend-service | grep urls | awk '{print $2}'`
@@ -37,7 +37,7 @@ popd
 echo "Push resource-service ..."
 pushd resource-service
 mvn package
-mvn resources:resources -Djwt_secret=$key
+mvn resources:resources -Djwt_key=$key
 
 cf push -f target/manifest.yml
 resourceService=`cf app resource-service | grep urls | awk '{print $2}'`
@@ -49,7 +49,7 @@ backendToken=`curl -s -X POST -H "Content-Type: multipart/form-data" -F claims='
 echo "Push gateway ..."
 pushd gateway-app
 mvn package
-mvn resources:resources -Djwt_secret=$key -Dbackend_url=http://$backendService -Dbackend_token=$backendToken -Dresource_url=http://$resourceService
+mvn resources:resources -Djwt_key=$key -Dbackend_url=http://$backendService -Dbackend_token=$backendToken -Dresource_url=http://$resourceService
 
 cf push -f target/manifest.yml
 gateway=`cf app gateway | grep urls | awk '{print $2}'`
